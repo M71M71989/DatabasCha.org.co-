@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Códigos Seriais</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* Estilo para o fundo de moedas caindo */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Estilo das moedas */
+        .coin {
+            width: 50px;
+            height: 50px;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Gold_coin_icon.png/512px-Gold_coin_icon.png');
+            background-size: cover;
+            position: absolute;
+            top: -50px;
+            animation: fall 5s infinite;
+            opacity: 0.9;
+        }
+
+        /* Animação para as moedas caindo */
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        /* Gera várias moedas com tempos de início aleatórios */
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px);
+            }
+            100% {
+                transform: translateY(100vh);
+            }
+        }
+
+        /* Para gerar várias moedas */
+        .coin:nth-child(1) { left: 5%; animation-duration: 3s; }
+        .coin:nth-child(2) { left: 15%; animation-duration: 5s; animation-delay: 0.5s; }
+        .coin:nth-child(3) { left: 25%; animation-duration: 4s; animation-delay: 1s; }
+        .coin:nth-child(4) { left: 35%; animation-duration: 3.5s; animation-delay: 1.5s; }
+        .coin:nth-child(5) { left: 45%; animation-duration: 5.5s; animation-delay: 2s; }
+        .coin:nth-child(6) { left: 55%; animation-duration: 6s; animation-delay: 2.5s; }
+        .coin:nth-child(7) { left: 65%; animation-duration: 4.5s; animation-delay: 3s; }
+        .coin:nth-child(8) { left: 75%; animation-duration: 3s; animation-delay: 3.5s; }
+        .coin:nth-child(9) { left: 85%; animation-duration: 5s; animation-delay: 4s; }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .codes, .confirmation {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #ffffff;
+            opacity: 0.95;
+        }
+
+        input {
+            margin-top: 10px;
+            padding: 8px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gerador de Códigos Seriais</h1>
+
+    <!-- Campo para o nome do usuário -->
+    <label for="username">Nome do Usuário:</label><br>
+    <input type="text" id="username" placeholder="Digite o seu nome"><br><br>
+
+    <!-- Botões para gerar e exportar códigos -->
+    <button onclick="generateSerialCodes()">Gerar 500 Códigos Seriais</button>
+    <button onclick="exportToPdf()">Exportar para PDF</button>
+
+    <!-- Exibir os códigos gerados -->
+    <div class="codes" id="codesDisplay"></div>
+
+    <!-- Campo para confirmar o código gerado -->
+    <h3>Confirmar Código Serial</h3>
+    <input type="text" id="serialConfirmation" placeholder="Digite o código serial para confirmar">
+    <button onclick="confirmSerialCode()">Confirmar Código</button>
+    <div class="confirmation" id="confirmationResult"></div>
+
+    <!-- Moedas que caem -->
+    <div class="coin"></div>
+    <div class="coin"></div>
+    <div class="coin"></div>
+    <div class="coin"></div>
+    <div class="coin"></div>
+    <div class="coin"></div>
+    <div class="coin"></div>
+    <div class="coin"></div>
+    <div class="coin"></div>
+
+    <script>
+        const serialCodes = [];
+        const purchases = [];
+        const numberOfCodes = 500;
+
+        // Função para gerar códigos seriais
+        function generateSerialCodes() {
+            const codesDisplay = document.getElementById('codesDisplay');
+            codesDisplay.innerHTML = ''; // Limpa a exibição anterior
+
+            const username = document.getElementById('username').value;
+            if (!username) {
+                alert("Por favor, digite o nome do usuário.");
+                return;
+            }
+
+            for (let i = 0; i < numberOfCodes; i++) {
+                const serialCode = "SC-" + (Math.floor(1000 + Math.random() * 9000));
+                const currentDate = new Date();
+                currentDate.setDate(currentDate.getDate() + i); // Incrementa a data
+                const formattedDate = currentDate.toLocaleDateString('pt-BR');
+
+                const codeEntry = `${serialCode} - ${formattedDate} - Gerado por: ${username}`;
+                serialCodes.push(serialCode); // Armazena o código serial para verificação posterior
+
+                // Exibe o código gerado com campos para registrar a compra e preço
+                const codeElement = document.createElement('div');
+                codeElement.innerHTML = `
+                    <p>${codeEntry}</p>
+                    <label for="purchase-${i}">Registar Compra:</label>
+                    <input type="text" id="purchase-${i}" placeholder="Registrar compra"><br>
+                    <label for="priceCategory-${i}">Preço (MZN):</label>
+                    <input type="number" id="priceCategory-${i}" placeholder="Digite o preço em MZN"><br>
+                    <hr>
+                `;
+                codesDisplay.appendChild(codeElement);
+
+                purchases.push({ serialCode, purchase: '', priceCategory: '' });
+            }
+            alert("500 Códigos seriais gerados com sucesso!");
+        }
+
+        // Função para confirmar se o código inserido foi gerado
+        function confirmSerialCode() {
+            const serialToConfirm = document.getElementById('serialConfirmation').value;
+            const confirmationResult = document.getElementById('confirmationResult');
+            confirmationResult.innerHTML = ''; // Limpa o resultado anterior
+
+            if (serialCodes.includes(serialToConfirm)) {
+                confirmationResult.textContent = `O código ${serialToConfirm} é válido.`;
+                confirmationResult.style.color = 'green';
+            } else {
+                confirmationResult.textContent = `O código ${serialToConfirm} não é válido.`;
+                confirmationResult.style.color = 'red';
+            }
+        }
+
+        // Função para exportar os códigos gerados e compras para PDF
+        function exportToPdf() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(12);
+            doc.text("Lista de Códigos Seriais com Datas, Compras e Preços", 10, 10);
+
+            let yOffset = 20;
+
+            for (let i = 0; i < serialCodes.length; i++) {
+                const purchaseValue = document.getElementById(`purchase-${i}`).value;
+                const priceCategoryValue = document.getElementById(`priceCategory-${i}`).value;
+                const codeEntry = `${serialCodes[i]} - Compra: ${purchaseValue} - Preço: ${priceCategoryValue} MZN`;
+
+                doc.text(codeEntry, 10, yOffset);
+                yOffset += 10;
+                if (yOffset > 280) { // Verifica se chegou ao final da página
+                    doc.addPage();
+                    yOffset = 10;
+                }
+            }
+
+            doc.save("CodigosSeriais_Compras.pdf");
+            alert("PDF gerado com sucesso!");
+        }
+    </script>
+</body>
+</html>
